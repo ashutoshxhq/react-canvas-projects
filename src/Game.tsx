@@ -29,6 +29,7 @@ const Game = (props: any) => {
 
             bubbles.map(bubble => {
                 ctx.drawImage(bubbleRef.current, bubble.x, bubble.y, 80 , 80);
+                return bubble
             })
         }
         const canvas: any = canvasRef.current
@@ -57,6 +58,7 @@ const Game = (props: any) => {
 
         }
         setBubbles(prev => prev.filter((item, index) => index !== indexToFilter))
+        // eslint-disable-next-line
     }, [bulletY, bulletInterval, bulletX, setBulletInterval])
 
     const onMouseMove = (e: any) => {
@@ -78,8 +80,8 @@ const Game = (props: any) => {
     }
     return (
         <div className="game-scene">
-            <img className="hidden" ref={spaceshipRef} src="/spaceship.png" style={{ width: "60px" }} />
-            <img className="hidden" ref={bubbleRef} src="/bubble.svg" style={{ width: "60px" }} />
+            <img className="hidden" ref={spaceshipRef} src="/spaceship.png" style={{ width: "60px" }}  alt="spacehip"/>
+            <img className="hidden" ref={bubbleRef} src="/bubble.svg" style={{ width: "60px" }} alt="bubble"/>
             <div >Mouse: {mouseX + "," + mouseY}  Bullet: {bulletX + "," + bulletY}  Score: {27 - bubbles.length}</div>
             <canvas onClick={handleMouseClick} onMouseMove={onMouseMove} width={1080} height={720} style={{ border: '4px dashed #0000001f' }} ref={canvasRef} {...props} />
         </div>

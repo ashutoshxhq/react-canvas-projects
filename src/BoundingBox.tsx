@@ -2,18 +2,39 @@ import React, { useEffect, useRef, useState } from 'react'
 import { parseString } from 'xml2js'
 
 const BoundingBox = (props: any) => {
-
-    const [mouseX, setMouseX] = useState(0)
-    const [mouseY, setMouseY] = useState(0)
+    const [boundingBoxes, setBoundingBoxes] = useState<any>([])
     const canvasRef = useRef(null)
-    const onMouseMove = (e: any) => {
-        setMouseX(e.nativeEvent.offsetX);
-        setMouseY(e.nativeEvent.offsetY);
-    }
+
 
     const parseBound = (boundString: any) => {
         return boundString.split("][").map((item: any) => item.replaceAll("[", "").replaceAll("]", "")).map((item: any) => item.split(","))
     }
+
+    const handleCanvasClick = (e: any) => {
+        let boxes = boundingBoxes.filter((boundingBox: any) => {
+            if ((boundingBox.bound[0][0] <= e.nativeEvent.offsetX && boundingBox.bound[1][0] >= e.nativeEvent.offsetX) && (boundingBox.bound[0][1] <= e.nativeEvent.offsetY && boundingBox.bound[1][1] >= e.nativeEvent.offsetY) && (boundingBox.element !== "android.widget.FrameLayout" && boundingBox.element !== "android.widget.ScrollView")) {
+                return true
+            }
+            return false
+        })
+        const canvas: any = canvasRef.current
+        const ctx = canvas?.getContext('2d')
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        boxes.map((box: any) => {
+            if (box) {
+                ctx.font = "60px Arial";
+                ctx.fillText(box.element, box.bound[0][0], parseInt(box.bound[0][1])-10);
+                ctx.beginPath();
+                ctx.lineWidth = "10";
+                ctx.strokeStyle = "blue";
+                ctx.rect(box.bound[0][0], box.bound[0][1], box.bound[1][0] - box.bound[0][0], box.bound[1][1] - box.bound[0][1]);
+                ctx.stroke();
+            }
+            return box
+        })
+
+    }
+
 
     useEffect(() => {
         let xml = `<hierarchy index="0" class="hierarchy" rotation="0" width="1440" height="2392">
@@ -34,18 +55,27 @@ const BoundingBox = (props: any) => {
         </android.widget.ScrollView>
         </android.widget.FrameLayout>
         </hierarchy>`;
-
-
-
+        let boundingBoxData: any = [];
+        const findBoundingBoxesRecursively = (data: any) => {
+            for (let subData in data) {
+                if (subData === "bounds") {
+                    console.log(data["class"])
+                    boundingBoxData.push({ element: data["class"], bound: parseBound(data[subData]) })
+                }
+                if (typeof data[subData] === "object") {
+                    findBoundingBoxesRecursively(data[subData])
+                }
+            }
+        }
         parseString(xml, function (err, result) {
-            console.log(JSON.stringify(result))
-            // console.dir(parseBound(result.hierarchy["android.widget.FrameLayout"][0]["android.widget.ScrollView"][0]["$"].bounds));
+            findBoundingBoxesRecursively(result)
         });
-    }, [mouseX, mouseY])
-
+        setBoundingBoxes(boundingBoxData)
+        console.log("test")
+    }, [])
 
     return (
-        <div className="wrapper"><canvas className="bg-ss" onMouseMove={onMouseMove} width={1440} height={2392} style={{ border: '1px solid black' }} ref={canvasRef} {...props} /></div>
+        <div className="wrapper"><canvas onClick={handleCanvasClick} className="bg-ss" width={1440} height={2392} ref={canvasRef} {...props} /></div>
     )
 }
 

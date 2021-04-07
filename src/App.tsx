@@ -7,7 +7,7 @@ import Home from "./Home";
 function App() {
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="https://idkashutosh.github.io/react-canvas-projects/">
       <Switch>
         <div className="App">
           <Route path="/" exact component={Home} />
